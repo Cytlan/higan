@@ -4,12 +4,22 @@ auto Program::path(uint id) -> string {
 
 auto Program::open(uint id, string name, vfs::file::mode mode, bool required) -> vfs::shared::file {
   if(name == "manifest.bml" && !path(id).endsWith(".sys/")) {
+    if(id == romPathID)
+    {
+      return vfs::memory::file::open((const uint8_t*)romMarkup.data(), romMarkup.size());
+    }
     if(!file::exists({path(id), name}) || settings["Library/IgnoreManifests"].boolean()) {
       if(auto manifest = execute("icarus", "--manifest", path(id))) {
         return vfs::memory::file::open(manifest.output.data<uint8_t>(), manifest.output.size());
       }
     }
   }
+  if(id == romPathID && name == "program.rom")
+  {
+    name = "";
+  }
+
+  //printf("Opening %s/%s\n", path(id).data(), name.data());
 
   if(auto result = vfs::fs::file::open({path(id), name}, mode)) return result;
 
@@ -34,9 +44,18 @@ auto Program::load(uint id, string name, string type) -> maybe<uint> {
     .setFilters({string{name, "|*.", type}, "All|*.*"})
     .openFolder();
   }
-  if(!directory::exists(location)) return mediumQueue.reset(), nothing;
-
+  //printf("Loading %s %s: %s (romFile: %s)\n", name.data(), type.data(), location.data(), romFile.data());
   uint pathID = mediumPaths.size();
+  if(location == romFile)
+  {
+    romPathID = pathID;
+  }
+  else if(!directory::exists(location))
+  {
+    printf("Couldn't find %s\n", location.data());
+    return mediumQueue.reset(), nothing;
+  }
+
   mediumPaths.append(location);
   return pathID;
 }

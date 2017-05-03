@@ -38,6 +38,10 @@ struct Program : Emulator::Platform {
   bool hasQuit = false;
   bool pause = false;
 
+  string romMarkup; // When loading directly
+  string romFile;
+  uint romPathID;
+
   vector<Emulator::Interface*> emulators;
 
   vector<string> mediumQueue;  //for command-line and drag-and-drop loading

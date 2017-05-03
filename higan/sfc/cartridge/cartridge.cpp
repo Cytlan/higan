@@ -36,6 +36,7 @@ auto Cartridge::load() -> bool {
   if(auto fp = platform->open(ID::SuperFamicom, "manifest.bml", File::Read, File::Required)) {
     information.manifest.cartridge = fp->reads();
   } else return false;
+
   auto document = BML::unserialize(information.manifest.cartridge);
   loadCartridge(document);
 
